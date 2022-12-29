@@ -1,7 +1,6 @@
 package ru.netology.integrationtests;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,10 +18,10 @@ class IntegrationTestsApplicationTests {
     TestRestTemplate restTemplate;
 
     @Container
-    private GenericContainer<?> devapp = new GenericContainer<>("dev80")
+    private final static GenericContainer<?> devapp = new GenericContainer<>("dev80")
             .withExposedPorts(8080);
     @Container
-    private GenericContainer<?> prodapp = new GenericContainer<>("prod81")
+    private final static GenericContainer<?> prodapp = new GenericContainer<>("prod81")
             .withExposedPorts(8081);
 
 //    @BeforeEach
@@ -38,10 +37,15 @@ class IntegrationTestsApplicationTests {
 
         // т.к. Теперь мы знаем на какие порты обращаться, обратимся с гет запросом
         ResponseEntity<String> devAppEntity = restTemplate.getForEntity("http://192.168.99.100:" + firstPort + "/profile", String.class);
-        ResponseEntity<String> prodAppEntity = restTemplate.getForEntity("http://192.168.99.100:" + secondPort +"/profile", String.class);
+        String expectedDevAppResponse = "Current profile is dev";
+        String actualDevAppResponse = devAppEntity.getBody();
 
-        System.out.println(devAppEntity.getBody());
-        System.out.println(prodAppEntity.getBody());
+        ResponseEntity<String> prodAppEntity = restTemplate.getForEntity("http://192.168.99.100:" + secondPort + "/profile", String.class);
+        String expectedProdAppResponse = "Current profile is production";
+        String actualProdAppResponse = prodAppEntity.getBody();
+
+        Assertions.assertEquals(expectedDevAppResponse, actualDevAppResponse);
+        Assertions.assertEquals(expectedProdAppResponse, actualProdAppResponse);
     }
 
 }
